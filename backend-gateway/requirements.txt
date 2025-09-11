@@ -1,0 +1,14 @@
+Django==4.2.7
+daphne==4.0.0
+djangorestframework==3.14.0
+django-cors-headers==4.3.1
+asgiref==3.7.2
+uvicorn==0.24.0
+python-decouple==3.8
+graphene-django==3.1.5
+django-graphql-jwt==0.3.4
+django
+channels
+strawberry-graphql
+channels-redis>=4.1.0
+redis>=4.2.0

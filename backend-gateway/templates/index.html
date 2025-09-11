@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Assistant Backend</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .status {
+            background: #e8f5e8;
+            border: 1px solid #4caf50;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .endpoints {
+            background: #f0f8ff;
+            border: 1px solid #2196f3;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .endpoint {
+            margin: 10px 0;
+            font-family: monospace;
+            background: #f5f5f5;
+            padding: 5px 10px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 AI Assistant Backend</h1>
+        
+        <div class="status">
+            <h3>✅ Status: Running</h3>
+            <p>The backend server is running and ready to handle requests.</p>
+        </div>
+        
+        <div class="endpoints">
+            <h3>🔗 Available Endpoints</h3>
+            <div class="endpoint">WebSocket: ws://localhost:8000/ws/</div>
+            <div class="endpoint">API: http://localhost:8000/api/</div>
+            <div class="endpoint">Admin: http://localhost:8000/admin/</div>
+        </div>
+        
+        <div class="status">
+            <h3>🎯 Frontend</h3>
+            <p>Access the chat interface at: <a href="http://localhost:3000" target="_blank">http://localhost:3000</a></p>
+        </div>
+        
+        <div class="endpoints">
+            <h3>📊 Services Status</h3>
+            <p>• Redis: ✅ Running on port 6379</p>
+            <p>• Ollama: ✅ Running on port 11434</p>
+            <p>• LLM Worker: ✅ Running</p>
+            <p>• TTS Worker: ✅ Running</p>
+        </div>
+    </div>
+</body>
+</html>

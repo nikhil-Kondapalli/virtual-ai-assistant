@@ -1,0 +1,79 @@
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+
+  gateway:
+    build:
+      context: ./backend-gateway
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - DEBUG=1
+    depends_on:
+      - redis
+    volumes:
+      - ./backend-gateway:/app
+    command: daphne -b 0.0.0.0 -p 8000 backend_gateway.asgi_websocket:application
+
+  llm-worker:
+    build:
+      context: ./worker-llm
+      dockerfile: Dockerfile
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - OLLAMA_URL=http://ollama:11434/api/generate
+      - MODEL_NAME=tinyllama
+    depends_on:
+      - redis
+      - ollama
+    volumes:
+      - ./worker-llm:/app
+
+  tts-worker:
+    build:
+      context: ./worker-tts
+      dockerfile: Dockerfile
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - redis
+    volumes:
+      - ./worker-tts:/app
+      - tts_models:/root/.local/share/tts
+
+  ollama:
+    build:
+      context: ./ollama
+      dockerfile: Dockerfile
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend-anime-agent
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_WS_URL=ws://localhost:8000/ws/
+      - REACT_APP_API_URL=http://localhost:8000/api/
+    depends_on:
+      - gateway
+    volumes:
+      - ./frontend-anime-agent:/app
+      - /app/node_modules
+
+volumes:
+  redis_data:
+  ollama_data:
+  tts_models:
