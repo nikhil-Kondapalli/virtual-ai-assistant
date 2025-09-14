@@ -52,9 +52,11 @@ build/
 .env.development.local
 .env.test.local
 .env.production.local
+.vite/
 
 # IDEs
 .vscode/
+.gemini/
 .idea/
 *.swp
 *.swo
@@ -138,4 +140,4 @@ tts_cache/
 
 # Live2D models (if large)
 # Uncomment if you want to ignore model files
-# frontend-anime-agent/public/models/
+# frontend/public/models/

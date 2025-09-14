@@ -3,9 +3,10 @@ from django.contrib.auth.models import User
 
 
 class ChatSession(models.Model):
-    """Represents a chat session with the anime agent."""
+    """Represents a chat session with the Virtual agent."""
     id = models.CharField(max_length=100, primary_key=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, null=True, blank=True)
     persona = models.CharField(max_length=50, default='kira_v1')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -17,7 +18,8 @@ class ChatSession(models.Model):
 
 class ChatMessage(models.Model):
     """Stores chat messages for history and analytics."""
-    session = models.ForeignKey(ChatSession, on_delete=models.CASCADE, related_name='messages')
+    session = models.ForeignKey(
+        ChatSession, on_delete=models.CASCADE, related_name='messages')
     role = models.CharField(max_length=20, choices=[
         ('user', 'User'),
         ('assistant', 'Assistant'),

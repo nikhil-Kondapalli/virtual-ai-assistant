@@ -1,5 +1,5 @@
 # """
-# WebSocket consumers for real-time chat with anime agent.
+# WebSocket consumers for real-time chat with Virtual agent.
 # """
 
 import json

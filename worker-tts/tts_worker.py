@@ -1,12 +1,11 @@
 # """
-# FastAPI TTS Worker - Handles text-to-speech requests via pyttsx3.
+# FastAPI TTS Worker - Handles text-to-speech requests via Coqui TTS.
 # """
 
 import os
 import json
 import asyncio
 import base64
-import re
 import io
 import soundfile as sf
 from TTS.api import TTS
@@ -17,8 +16,11 @@ from fastapi import FastAPI
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 app = FastAPI()
 # Load TTS model once
-print("🔊 Loading TTS model: tts_models/en/ljspeech/glow-tts")
-tts = TTS("tts_models/en/ljspeech/glow-tts")
+# Using a faster model suitable for CPU
+TTS_MODEL = os.getenv("TTS_MODEL", "tts_models/en/ljspeech/speedy-speech")
+print(f"🔊 Loading TTS model: {TTS_MODEL}")
+# Make sure to have a GPU-enabled build of PyTorch if you want to use GPU
+tts = TTS(TTS_MODEL, gpu=False)
 
 
 # --- State Management ---
@@ -66,36 +68,57 @@ async def tts_worker_loop():
             token = data.get("token", "")
             state["text_buffer"] += token
 
-            # Use regex to find complete sentences (ending with . ! ?)
-            sentence_pattern = r"([^.!?]+[.!?])"
-            sentences = re.findall(sentence_pattern, state["text_buffer"])
+            delimiters = {'.', '!', '?', ','}
+            WORD_COUNT_THRESHOLD = 12
 
-            if sentences:
-                text_to_process = "".join(sentences)
-                # Update buffer to keep only the partial sentence
-                state["text_buffer"] = state["text_buffer"][len(
-                    text_to_process):]
+            while True:
+                text_buffer = state["text_buffer"]
+                
+                # Find the first delimiter
+                first_delimiter_pos = -1
+                for i, char in enumerate(text_buffer):
+                    if char in delimiters:
+                        first_delimiter_pos = i
+                        break
 
-                # Generate audio for the complete sentences
-                print(
-                    f"🗣️ Generating TTS for session {session_id}: '{text_to_process.strip()}'")
-                wav = tts.tts(text=text_to_process.strip())
+                text_to_process = None
+                
+                if first_delimiter_pos != -1:
+                    # Delimiter found, process the chunk up to it
+                    text_to_process = text_buffer[:first_delimiter_pos + 1]
+                    state["text_buffer"] = text_buffer[first_delimiter_pos + 1:]
+                else:
+                    # No delimiter, check for word count fallback
+                    words = text_buffer.split()
+                    if len(words) > WORD_COUNT_THRESHOLD:
+                        text_to_process = text_buffer
+                        state["text_buffer"] = "" # Clear buffer
+                
+                if text_to_process:
+                    print(
+                        f"🗣️ Generating TTS for session {session_id}: '{text_to_process.strip()}'")
+                    # Run blocking TTS call in a separate thread
+                    wav = await asyncio.to_thread(tts.tts, text=text_to_process.strip())
 
-                # Encode and publish the audio chunk
-                buf = io.BytesIO()
-                sf.write(buf, wav, samplerate=22050, format="WAV")
-                b64_chunk = base64.b64encode(buf.getvalue()).decode("utf-8")
+                    # Encode and publish the audio chunk as Ogg/Opus
+                    buf = io.BytesIO()
+                    sf.write(buf, wav, samplerate=24000,
+                             format='OGG', subtype='OPUS')
+                    b64_chunk = base64.b64encode(buf.getvalue()).decode("utf-8")
 
-                await redis.publish(
-                    f"session:{session_id}:out",
-                    json.dumps({
-                        "type": "tts_chunk",
-                        "seq": state["tts_chunks_sent"],
-                        "format": "wav",
-                        "data": b64_chunk
-                    })
-                )
-                state["tts_chunks_sent"] += 1
+                    await redis.publish(
+                        f"session:{session_id}:out",
+                        json.dumps({
+                            "type": "tts_chunk",
+                            "seq": state["tts_chunks_sent"],
+                            "format": "opus",
+                            "data": b64_chunk
+                        })
+                    )
+                    state["tts_chunks_sent"] += 1
+                else:
+                    # Nothing to process, break the loop
+                    break
 
         elif msg_type == "llm_end":
             # Process any remaining text in the buffer
@@ -103,14 +126,15 @@ async def tts_worker_loop():
             if remaining_text:
                 print(
                     f"🗣️ Generating TTS for remaining text: '{remaining_text}'")
-                wav = tts.tts(text=remaining_text)
+                wav = await asyncio.to_thread(tts.tts, text=remaining_text)
                 buf = io.BytesIO()
-                sf.write(buf, wav, samplerate=22050, format="WAV")
+                sf.write(buf, wav, samplerate=24000,
+                         format='OGG', subtype='OPUS')
                 b64_chunk = base64.b64encode(buf.getvalue()).decode("utf-8")
                 await redis.publish(
                     f"session:{session_id}:out",
                     json.dumps(
-                        {"type": "tts_chunk", "seq": state["tts_chunks_sent"], "format": "wav", "data": b64_chunk})
+                        {"type": "tts_chunk", "seq": state["tts_chunks_sent"], "format": "opus", "data": b64_chunk})
                 )
                 state["tts_chunks_sent"] += 1
 

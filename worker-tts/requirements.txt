@@ -4,14 +4,12 @@ redis>=4.2.0
 
 # Audio
 soundfile==0.12.1
-numpy==1.26.4
-librosa==0.10.2
 
-
-# Coqui TTS core (Glow-TTS + VITS inference only)
+# Coqui TTS - Upgraded for XTTSv2 support
 TTS==0.22.0
 
 # Torch CPU-only builds (much smaller than CUDA)
+# Ensure these versions are compatible with the TTS version
 torch==2.2.2+cpu
 torchaudio==2.2.2+cpu
 -f https://download.pytorch.org/whl/cpu/torch_stable.html

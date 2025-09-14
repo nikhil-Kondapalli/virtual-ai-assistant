@@ -18,6 +18,9 @@ MODEL_NAME = os.getenv("MODEL_NAME", "tinyllama")
 redis = aioredis.from_url(REDIS_URL)
 stopped_sessions = set()
 
+# Create a single, reusable httpx client
+client = httpx.AsyncClient(timeout=None)
+
 app = FastAPI()
 
 
@@ -50,43 +53,42 @@ async def llm_worker_loop():
 
         try:
             # Stream from Ollama
-            async with httpx.AsyncClient(timeout=None) as client:
-                async with client.stream(
-                    "POST",
-                    OLLAMA_URL,
-                    json={"model": MODEL_NAME, "prompt": prompt, "stream": True},
-                ) as response:
-                    response.raise_for_status()  # Raise an exception for bad status codes
-                    async for line in response.aiter_lines():
-                        # Check for stop signal
-                        if session_id in stopped_sessions:
-                            print(
-                                f"[LLM] 🛑 Stopping generation for session {session_id}")
-                            break
+            async with client.stream(
+                "POST",
+                OLLAMA_URL,
+                json={"model": MODEL_NAME, "prompt": prompt, "stream": True},
+            ) as response:
+                response.raise_for_status()  # Raise an exception for bad status codes
+                async for line in response.aiter_lines():
+                    # Check for stop signal
+                    if session_id in stopped_sessions:
+                        print(
+                            f"[LLM] 🛑 Stopping generation for session {session_id}")
+                        break
 
-                        if not line.strip():
-                            continue
-                        try:
-                            data = json.loads(line)
-                        except json.JSONDecodeError:
-                            print(
-                                f"[LLM] Warning: Could not decode JSON line: {line}")
-                            continue
+                    if not line.strip():
+                        continue
+                    try:
+                        data = json.loads(line)
+                    except json.JSONDecodeError:
+                        print(
+                            f"[LLM] Warning: Could not decode JSON line: {line}")
+                        continue
 
-                        token = data.get("response")
-                        if token:
-                            full_response += token
-                            await redis.publish(
-                                f"session:{session_id}:out",
-                                json.dumps({
-                                    "type": "llm_token",
-                                    "token": token,
-                                    "persona": persona
-                                }),
-                            )
+                    token = data.get("response")
+                    if token:
+                        full_response += token
+                        await redis.publish(
+                            f"session:{session_id}:out",
+                            json.dumps({
+                                "type": "llm_token",
+                                "token": token,
+                                "persona": persona
+                            }),
+                        )
 
-                        if data.get("done", False):
-                            break
+                    if data.get("done", False):
+                        break
         except httpx.RequestError as e:
             print(f"[LLM] Error: Could not connect to Ollama: {e}")
         finally:

@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# Logs script for Anime AI Assistant
+# Logs script for Virtual AI Assistant
 
-echo "📋 Viewing logs for Anime AI Assistant..."
+echo "📋 Viewing logs for Virtual AI Assistant..."
 echo "Press Ctrl+C to exit"
 echo ""
 
