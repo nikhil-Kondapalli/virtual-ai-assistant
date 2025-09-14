@@ -1,6 +1,6 @@
 import { Live2DCubismModel } from "live2d-renderer-lite";
 
-const MODEL_PATH = "/live2d-models/mao_pro/runtime/";
+const MODEL_PATH = "/models/mao_pro/runtime/";
 const MODEL_JSON_FILE = "mao_pro.model3.json";
 
 export class Live2DManager {

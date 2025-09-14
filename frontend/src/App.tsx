@@ -1,10 +1,10 @@
-import React from "react";
-import { ChatInterface } from "./components/ChatInterface";
-import { Live2DViewer } from "./components/Live2DViewer";
-import { WebSocketProvider } from "./ws/WebSocketProvider";
-import { AudioProvider } from "./audio/AudioProvider";
+import { ChatInterface } from "@components/chat-interface";
+import { Live2DViewer } from "@components/live-2d-viewer";
+import type { ReactElement } from "react";
+import { AudioProvider } from "./audio/audio-provider";
+import { WebSocketProvider } from "./ws/web-socket-provider";
 
-function App() {
+const App = (): ReactElement => {
   return (
     <WebSocketProvider>
       <AudioProvider>
@@ -20,6 +20,6 @@ function App() {
       </AudioProvider>
     </WebSocketProvider>
   );
-}
+};
 
-export default App;
+export { App };

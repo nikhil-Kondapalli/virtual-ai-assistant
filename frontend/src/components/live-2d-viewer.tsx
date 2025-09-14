@@ -1,7 +1,7 @@
+import { Live2DManager } from "@live2d/live-2d-manager";
 import React, { useEffect, useRef, useState } from "react";
-import { Live2DManager } from "../live2d/Live2DManager";
-import { useLive2DStore } from "../stores/live2dStore";
-import { useAudio } from "../audio/AudioProvider";
+import { useAudio } from "@audio/audio-provider";
+import { useLive2DStore } from "@stores/live-2d-store";
 
 export const Live2DViewer: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);

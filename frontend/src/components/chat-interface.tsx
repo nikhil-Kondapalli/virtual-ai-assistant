@@ -1,13 +1,19 @@
 import { Mic, MicOff, Send, Square } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
-import { useAudio } from "../audio/AudioProvider";
-import { useChatStore } from "../stores/chatStore";
-import { useWebSocket } from "../ws/WebSocketProvider";
+import { useAudio } from "@audio/audio-provider";
+import { useChatStore } from "@stores/chat-store";
+import { useWebSocket } from "@ws/web-socket-provider";
 
 const ChatFooter = () => {
-  const { isPlaying, clearQueue } = useAudio();
+  const { isPlaying } = useAudio();
 
-  return <div>{isPlaying && <span>🔊 Speaking...</span>}</div>;
+  return (
+    <div className="h-8 px-4 flex items-center text-sm text-muted-foreground">
+      {isPlaying && (
+        <span className="flex items-center gap-2">🔊 Speaking...</span>
+      )}
+    </div>
+  );
 };
 
 export const ChatInterface: React.FC = () => {
@@ -15,7 +21,7 @@ export const ChatInterface: React.FC = () => {
   const [isRecording, setIsRecording] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const { session, currentMessage, setCurrentMessage } = useChatStore();
+  const { session } = useChatStore();
   const { sendMessage, isConnected, stopGeneration } = useWebSocket();
   const isStreaming = useChatStore(
     (state) =>
@@ -60,12 +66,12 @@ export const ChatInterface: React.FC = () => {
   }
 
   return (
-    <div className="chat-container h-full flex flex-col">
+    <div className="bg-background h-full flex flex-col">
       {isDemoMode && (
-        <div className="bg-yellow-100 border-b border-yellow-200 p-3">
+        <div className="bg-secondary/20 border-b border-secondary/30 p-3">
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-            <p className="text-sm text-yellow-800">
+            <div className="w-2 h-2 bg-secondary rounded-full"></div>
+            <p className="text-sm text-secondary-foreground">
               Demo Mode: Backend not connected. You can still chat with Kira!
             </p>
           </div>
@@ -89,15 +95,15 @@ export const ChatInterface: React.FC = () => {
               isConnected
                 ? "bg-green-500"
                 : isDemoMode
-                ? "bg-yellow-500"
-                : "bg-red-500"
+                ? "bg-secondary"
+                : "bg-destructive"
             }`}
           />
         </div>
       </div>
 
       {/* Messages */}
-      <div className="chat-messages flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto">
         {session.messages.length === 0 ? (
           <div className="flex items-center justify-center h-full">
             <div className="text-center">
@@ -113,53 +119,64 @@ export const ChatInterface: React.FC = () => {
             {session.messages.map((message) => (
               <div
                 key={message.id}
-                className={`message-bubble ${
-                  message.role === "user" ? "message-user" : "message-assistant"
+                className={`flex gap-2 items-end ${
+                  message.role === "user" ? "justify-end" : "justify-start"
                 }`}
               >
-                <div className="flex items-start gap-2">
+                {message.role === "assistant" && (
                   <div className="flex-shrink-0">
-                    {message.role === "user" ? (
-                      <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-                        <span className="text-primary-foreground text-sm font-semibold">
-                          U
-                        </span>
-                      </div>
-                    ) : (
-                      <div className="w-8 h-8 bg-secondary rounded-full flex items-center justify-center">
-                        <span className="text-secondary-foreground text-sm font-semibold">
-                          K
-                        </span>
-                      </div>
-                    )}
+                    <div className="w-8 h-8 bg-secondary rounded-full flex items-center justify-center">
+                      <span className="text-secondary-foreground text-sm font-semibold">
+                        K
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <p className="text-sm">{message.content}</p>
-                    {message.isStreaming && (
-                      <div className="typing-indicator mt-2">
-                        <div className="typing-dot"></div>
-                        <div className="typing-dot"></div>
-                        <div className="typing-dot"></div>
-                      </div>
-                    )}
-                  </div>
+                )}
+                <div
+                  className={`rounded-lg p-3 max-w-[80%] ${
+                    message.role === "user"
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted text-foreground"
+                  }`}
+                >
+                  <p className="text-sm whitespace-pre-wrap">
+                    {message.content}
+                  </p>
+                  {message.isStreaming && (
+                    <div className="flex items-center space-x-1 mt-2">
+                      <div className="w-2 h-2 bg-current rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                      <div className="w-2 h-2 bg-current rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                      <div className="w-2 h-2 bg-current rounded-full animate-bounce"></div>
+                    </div>
+                  )}
                 </div>
+                {message.role === "user" && (
+                  <div className="flex-shrink-0">
+                    <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                      <span className="text-primary-foreground text-sm font-semibold">
+                        U
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
 
             {/* Typing indicator */}
             {session.isTyping && (
-              <div className="message-bubble message-assistant">
-                <div className="flex items-start gap-2">
+              <div className="flex gap-2 items-end justify-start">
+                <div className="flex-shrink-0">
                   <div className="w-8 h-8 bg-secondary rounded-full flex items-center justify-center">
                     <span className="text-secondary-foreground text-sm font-semibold">
                       K
                     </span>
                   </div>
-                  <div className="typing-indicator">
-                    <div className="typing-dot"></div>
-                    <div className="typing-dot"></div>
-                    <div className="typing-dot"></div>
+                </div>
+                <div className="rounded-lg p-3 bg-muted">
+                  <div className="flex items-center space-x-1">
+                    <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                    <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                    <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce"></div>
                   </div>
                 </div>
               </div>
@@ -172,7 +189,7 @@ export const ChatInterface: React.FC = () => {
 
       <ChatFooter />
 
-      <div className="chat-input border-t border-border">
+      <div className="border-t border-border bg-background">
         <div className="flex items-end gap-2 p-4">
           <div className="flex-1">
             <textarea
@@ -180,7 +197,7 @@ export const ChatInterface: React.FC = () => {
               onChange={(e) => setInputMessage(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder="Type your message..."
-              className="w-full p-3 border border-input rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+              className="w-full p-3 bg-background border border-input rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
               rows={1}
               style={{ minHeight: "44px", maxHeight: "120px" }}
             />
@@ -197,8 +214,12 @@ export const ChatInterface: React.FC = () => {
               {isRecording ? <MicOff size={20} /> : <Mic size={20} />}
             </button>
             {isStreaming ? (
-              <button onClick={stopGeneration} aria-label="Stop generation">
-                <Square className="h-5 w-5" />
+              <button
+                onClick={stopGeneration}
+                aria-label="Stop generation"
+                className="p-2 bg-destructive text-destructive-foreground rounded-md hover:bg-destructive/90"
+              >
+                <Square size={20} />
               </button>
             ) : (
               <button

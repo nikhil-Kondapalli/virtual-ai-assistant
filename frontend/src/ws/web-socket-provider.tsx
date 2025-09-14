@@ -6,8 +6,8 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { useChatStore } from "../stores/chatStore";
-import { useLive2DStore } from "../stores/live2dStore";
+import { useChatStore } from "../stores/chat-store";
+import { useLive2DStore } from "../stores/live-2d-store";
 
 interface WebSocketContextType {
   sendMessage: (message: string) => void;
