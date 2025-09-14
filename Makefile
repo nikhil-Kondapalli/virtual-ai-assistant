@@ -2,30 +2,30 @@
 .PHONY: help setup start stop logs build clean test
 
 help: ## Show this help message
-	@echo "Anime AI Assistant - Available commands:"
+	@echo "Virtual AI Assistant - Available commands:"
 	@echo ""
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
 setup: ## Initial setup of the project
-	@echo "🎌 Setting up Anime AI Assistant..."
+	@echo "🎌 Setting up Virtual AI Assistant..."
 	@if [ ! -f .env ]; then cp env.example .env; fi
-	@mkdir -p frontend-anime-agent/public/models
+	@mkdir -p frontend/public/models
 	@mkdir -p worker-tts/tts_cache
 	@docker-compose build
 	@echo "✅ Setup complete! Run 'make start' to begin."
 
 start: ## Start all services
-	@echo "🚀 Starting Anime AI Assistant..."
+	@echo "🚀 Starting Virtual AI Assistant..."
 	@docker-compose up -d
 	@echo "✅ Services started! Access at http://localhost:3000"
 
 stop: ## Stop all services
-	@echo "🛑 Stopping Anime AI Assistant..."
+	@echo "🛑 Stopping Virtual AI Assistant..."
 	@docker-compose down
 	@echo "✅ Services stopped!"
 
 restart: ## Restart all services
-	@echo "🔄 Restarting Anime AI Assistant..."
+	@echo "🔄 Restarting Virtual AI Assistant..."
 	@docker-compose restart
 	@echo "✅ Services restarted!"
 

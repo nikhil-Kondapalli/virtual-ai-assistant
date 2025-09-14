@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# Start script for Anime AI Assistant
+# Start script for Virtual AI Assistant
 
 set -e
 
-echo "🚀 Starting Anime AI Assistant..."
+echo "🚀 Starting Virtual AI Assistant..."
 
 # Check if .env exists
 if [ ! -f .env ]; then

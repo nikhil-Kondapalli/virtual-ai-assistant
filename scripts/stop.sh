@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# Stop script for Anime AI Assistant
+# Stop script for Virtual AI Assistant
 
-echo "🛑 Stopping Anime AI Assistant..."
+echo "🛑 Stopping Virtual AI Assistant..."
 
 # Stop all services
 docker-compose down

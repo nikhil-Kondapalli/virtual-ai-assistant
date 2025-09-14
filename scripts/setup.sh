@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# Setup script for Anime AI Assistant
+# Setup script for Virtual AI Assistant
 
 set -e
 
-echo "🎌 Setting up Anime AI Assistant..."
+echo "🎌 Setting up Virtual AI Assistant..."
 
 # Check if Docker is installed
 if ! command -v docker &> /dev/null; then
@@ -27,7 +27,7 @@ fi
 
 # Create necessary directories
 echo "📁 Creating directories..."
-mkdir -p frontend-anime-agent/public/models
+mkdir -p frontend/public/models
 mkdir -p worker-tts/tts_cache
 
 # Pull Docker images
@@ -79,8 +79,8 @@ echo "   Stop all:     docker-compose down"
 echo "   Restart:      docker-compose restart"
 echo ""
 echo "🎯 Next steps:"
-echo "   1. Place your Live2D model files in frontend-anime-agent/public/models/"
+echo "   1. Place your Live2D model files in frontend/public/models/"
 echo "   2. Customize the persona in the backend configuration"
 echo "   3. Adjust TTS settings in worker-tts/"
 echo ""
-echo "Happy chatting with your anime assistant! 🎌"
+echo "Happy chatting with your Virtual AI assistant! 🎌"

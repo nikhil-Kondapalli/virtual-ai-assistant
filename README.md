@@ -1,13 +1,15 @@
-# Anime AI Assistant
+# Virtual AI Assistant
 
-A monorepo for an anime-style virtualized agent featuring Live2D avatars, real-time chat, and AI-powered responses.
+> **A scalable, real-time AI-powered avatar platform with Live2D, WebSockets, LLM integration, and TTS – built for immersive interactions and future AR/VR experiences.**
+
+---
 
 ## 🎯 Features
 
-- **Live2D Avatar**: Interactive anime character with expressions and animations
+- **Live2D Avatar**: Interactive Virtual character with expressions and animations
 - **Real-time Chat**: WebSocket-based communication with typewriter effects
 - **AI Integration**: Open-source LLM support via Ollama (Mistral, Phi3, Qwen, TinyLlama)
-- **Text-to-Speech**: Coqui TTS with anime-style voices
+- **Text-to-Speech**: Coqui TTS with personalised-style voices
 - **Scalable Architecture**: Microservices with Redis pub/sub backbone
 - **Modern UI**: React + TypeScript + ShadCN components
 
@@ -114,7 +116,7 @@ The `docker-compose.yml` file defines the following services:
   - `environment`: Sets environment variables for the service, including the Redis and Ollama URLs.
   - `depends_on: - redis - ollama`: Specifies that the `llm-worker` service depends on the `redis` and `ollama` services.
   - `volumes: - ./worker-llm:/app`: Mounts the `worker-llm` directory for local development.
-- **`tts-worker`**: A worker service that uses Coqui TTS to generate anime-style voices.
+- **`tts-worker`**: A worker service that uses Coqui TTS to generate personalised-style voices.
   - `build: context: ./worker-tts`: Builds the Docker image for the `tts-worker` service.
   - `environment`: Sets the Redis URL.
   - `depends_on: - redis`: Specifies that the `tts-worker` service depends on the `redis` service.
@@ -125,11 +127,11 @@ The `docker-compose.yml` file defines the following services:
   - `volumes: - ollama_data:/root/.ollama`: Creates a named volume `ollama_data` to persist the Ollama models.
   - `restart: unless-stopped`: Configures the service to restart automatically unless it is stopped manually.
 - **`frontend`**: The React frontend for the application.
-  - `build: context: ./frontend-anime-agent`: Builds the Docker image for the `frontend` service.
+  - `build: context: ./frontend Docker image for the `frontend` service.
   - `ports: - "3000:3000"`: Maps port 3000 on the host to port 3000 in the container.
   - `environment`: Sets environment variables for the React application.
   - `depends_on: - gateway`: Specifies that the `frontend` service depends on the `gateway` service.
-  - `volumes: - ./frontend-anime-agent:/app - /app/node_modules`: Mounts the `frontend-anime-agent` directory for local development, and creates an anonymous volume for `node_modules` to prevent it from being overwritten by the host's `node_modules` directory.
+  - `volumes: - ./frontend:/app - /app/node_modules`: Mounts the `frontend` directory for local development, and creates an anonymous volume for `node_modules` to prevent it from being overwritten by the host's `node_modules` directory.
 
 ### Volumes
 
@@ -142,27 +144,27 @@ The `docker-compose.yml` file defines the following services:
 ```
 
 monorepo/
-├── docker-compose.yml          # Service orchestration
-├── backend-gateway/            # Django gateway
-│   ├── backend_gateway/        # Django project
-│   ├── chat/                   # Chat app with WebSockets
+├── docker-compose.yml        # Service orchestration
+├── backend-gateway/          # Django gateway
+│   ├── backend_gateway/      # Django project
+│   ├── chat/                 # Chat app with WebSockets
 │   └── Dockerfile
-├── worker-llm/                 # FastAPI LLM worker
-│   ├── llm_worker.py          # Ollama integration
+├── worker-llm/               # FastAPI LLM worker
+│   ├── llm_worker.py         # Ollama integration
 │   └── Dockerfile
-├── worker-tts/                 # FastAPI TTS worker
-│   ├── tts_worker.py          # Coqui TTS integration
+├── worker-tts/               # FastAPI TTS worker
+│   ├── tts_worker.py         # Coqui TTS integration
 │   └── Dockerfile
-├── frontend-anime-agent/       # React frontend
+├── frontend/                 # React frontend
 │   ├── src/
-│   │   ├── components/        # UI components
+│   │   ├── components/       # UI components
 │   │   ├── live2d/           # Live2D integration
 │   │   ├── stores/           # Zustand state management
 │   │   ├── ws/               # WebSocket client
 │   │   └── audio/            # Audio handling
 │   └── Dockerfile
-├── infra/k8s/                 # Kubernetes configs (optional)
-└── ops/                       # Monitoring & observability
+├── infra/k8s/                # Kubernetes configs (optional)
+└── ops/                      # Monitoring & observability
     ├── prometheus/
     ├── grafana/
     └── sentry/
@@ -193,7 +195,7 @@ REACT_APP_API_URL=http://localhost:8000/api/
 
 ### Live2D Models
 
-Place your Live2D models in `frontend-anime-agent/public/models/`:
+Place your Live2D models in `frontend/public/models/`:
 
 ```
 public/models/
@@ -245,7 +247,7 @@ python manage.py migrate
 python manage.py runserver
 
 # Frontend
-cd frontend-anime-agent
+cd frontend
 npm install
 npm start
 

@@ -60,7 +60,7 @@ services:
 
   frontend:
     build:
-      context: ./frontend-anime-agent
+      context: ./frontend
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
@@ -70,7 +70,7 @@ services:
     depends_on:
       - gateway
     volumes:
-      - ./frontend-anime-agent:/app
+      - ./frontend:/app
       - /app/node_modules
 
 volumes:

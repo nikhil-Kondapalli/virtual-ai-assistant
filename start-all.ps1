@@ -1,5 +1,5 @@
 # PowerShell script to start all services
-Write-Host "Starting Anime AI Assistant..." -ForegroundColor Green
+Write-Host "Starting Virtual AI Assistant..." -ForegroundColor Green
 
 # Start Redis and Ollama
 Write-Host "Starting Redis and Ollama..." -ForegroundColor Yellow
@@ -27,7 +27,7 @@ Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd worker-tts; .\
 
 # Start Frontend
 Write-Host "Starting Frontend..." -ForegroundColor Yellow
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd frontend-anime-agent; npm start"
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd frontend; npm start"
 
 Write-Host "All services started!" -ForegroundColor Green
 Write-Host ""
