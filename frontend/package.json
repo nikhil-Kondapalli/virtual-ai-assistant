@@ -1,6 +1,7 @@
 {
   "name": "virtual-ai-assistant",
   "version": "0.1.0",
+  "type": "module",
   "private": true,
   "license": "MIT",
   "dependencies": {
@@ -8,12 +9,13 @@
     "jose": "^6.0.11",
     "live2d-renderer-lite": "^0.3.2",
     "lucide-react": "^0.525.0",
+    "tw-animate-css": "^1.3.5",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "zustand": "^5.0.6"
   },
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --port 3000",
     "build": "vite build",
     "preview": "vite preview"
   },
@@ -33,6 +35,9 @@
     ]
   },
   "devDependencies": {
+    "prettier": "^3.6.2",
+    "@types/node": "^24.0.10",
+    "typescript": "^5.8.3",
     "@tailwindcss/vite": "^4.1.13",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",

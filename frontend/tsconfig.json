@@ -1,21 +1,10 @@
 {
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.node.json" }
+  ],
   "compilerOptions": {
-    "target": "ES2020",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "noFallthroughCasesInSwitch": true,
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "jsx": "react-jsx",
-    "types": ["vite/client"],
-    "baseUrl": ".",
     "paths": {
       "@app/*": ["./src/*"],
       "@assets/*": ["./src/assets/*"],
@@ -28,17 +17,10 @@
       "@styles/*": ["./src/styles/*"],
       "@utils/*": ["./src/utils/*"],
       "@validators/*": ["./src/validators/*"],
-      "@live2d/*": ["./src/live2d/*"]
+      "@live2d/*": ["./src/live2d/*"],
+      "@audio/*": ["./src/audio/*"],
+      "@ws/*": ["./src/ws/*"],
+      "@stores/*": ["./src/stores/*"]
     }
-  },
-  "include": ["src"],
-  "exclude": [
-    "src/assets/*.js",
-    "src/libs/live2dcubismcore.js",
-    "src/libs/live2dcubismframework.js"
-  ],
-  "references": [
-    { "path": "./tsconfig.app.json" },
-    { "path": "./tsconfig.node.json" }
-  ]
+  }
 }
