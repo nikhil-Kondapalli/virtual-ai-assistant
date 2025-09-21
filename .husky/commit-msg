@@ -1,0 +1,18 @@
+#!/bin/sh
+
+COMMIT_MSG_FILE=$1
+COMMIT_MSG=$(cat "$COMMIT_MSG_FILE")
+
+COMMIT_REGEX="^(feat|fix|refactor|perf|style|docs|test|build|ops|chore)(\([a-zA-Z0-9_-]+\))?(!?): (.+)$"
+
+if ! echo "$COMMIT_MSG" | grep -Eq "$COMMIT_REGEX"; then
+  echo "--------------------------------------------------------------------------------"
+  echo "  ERROR: Invalid commit message format."
+  echo "  Please adhere to Conventional Commits specification."
+  echo "  Example: <type>(<scope>): <description>"
+  echo "  Valid types: feat, fix, refactor, perf, style, docs, test, build, ops, chore"
+  echo "  For breaking changes, use '!' after type/scope: feat(api)!: remove endpoint"
+  echo "  Your commit message: $COMMIT_MSG"
+  echo "--------------------------------------------------------------------------------"
+  exit 1
+fi

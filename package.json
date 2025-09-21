@@ -1,0 +1,16 @@
+{
+  "name": "virtual-ai-assistant-frontend",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "license": "MIT",
+  "author": "Nikhil Kondapalli",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepare": "husky"
+  },
+  "keywords": [],
+  "devDependencies": {
+    "husky": "^9.1.7"
+  }
+}
