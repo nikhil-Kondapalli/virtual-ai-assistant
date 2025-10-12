@@ -18,15 +18,15 @@ const ChatFooter = () => {
 
 export const ChatInterface: React.FC = () => {
   const [inputMessage, setInputMessage] = useState("");
-  const [isRecording, setIsRecording] = useState(false);
+  const [isRecording] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const { session } = useChatStore();
   const { sendMessage, isConnected, stopGeneration } = useWebSocket();
   const isStreaming = useChatStore(
-    (state) =>
+    state =>
       state.session?.messages.some(
-        (m) => m.role === "assistant" && m.isStreaming
+        m => m.role === "assistant" && m.isStreaming
       ) ?? false
   );
 
@@ -83,21 +83,19 @@ export const ChatInterface: React.FC = () => {
           <div>
             <h2 className="text-lg font-semibold">Chat with Kira</h2>
             <p className="text-sm text-muted-foreground">
-              {isConnected
-                ? "Connected"
-                : isDemoMode
-                ? "Demo Mode"
-                : "Disconnected"}
+              {(() => {
+                if (isConnected) return "Connected";
+                if (isDemoMode) return "Demo Mode";
+                return "Disconnected";
+              })()}
             </p>
           </div>
           <div
-            className={`w-3 h-3 rounded-full ${
-              isConnected
-                ? "bg-green-500"
-                : isDemoMode
-                ? "bg-secondary"
-                : "bg-destructive"
-            }`}
+            className={`w-3 h-3 rounded-full ${(() => {
+              if (isConnected) return "bg-green-500";
+              if (isDemoMode) return "bg-secondary";
+              return "bg-destructive";
+            })()}`}
           />
         </div>
       </div>
@@ -108,7 +106,9 @@ export const ChatInterface: React.FC = () => {
           <div className="flex items-center justify-center h-full">
             <div className="text-center">
               <div className="text-4xl mb-4">👋</div>
-              <h3 className="text-lg font-semibold mb-2">Hello! I'm Kira</h3>
+              <h3 className="text-lg font-semibold mb-2">
+                Hello! I&apos;m Kira
+              </h3>
               <p className="text-muted-foreground">
                 Your Virtual AI assistant. How can I help you today?
               </p>
@@ -116,7 +116,7 @@ export const ChatInterface: React.FC = () => {
           </div>
         ) : (
           <div className="space-y-4 p-4">
-            {session.messages.map((message) => (
+            {session.messages.map(message => (
               <div
                 key={message.id}
                 className={`flex gap-2 items-end ${
@@ -194,8 +194,10 @@ export const ChatInterface: React.FC = () => {
           <div className="flex-1">
             <textarea
               value={inputMessage}
-              onChange={(e) => setInputMessage(e.target.value)}
-              onKeyPress={handleKeyPress}
+              onChange={e => {
+                setInputMessage(e.target.value);
+              }}
+              onKeyDown={handleKeyPress}
               placeholder="Type your message..."
               className="w-full p-3 bg-background border border-input rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
               rows={1}

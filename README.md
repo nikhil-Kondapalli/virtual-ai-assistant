@@ -127,7 +127,7 @@ The `docker-compose.yml` file defines the following services:
   - `volumes: - ollama_data:/root/.ollama`: Creates a named volume `ollama_data` to persist the Ollama models.
   - `restart: unless-stopped`: Configures the service to restart automatically unless it is stopped manually.
 - **`frontend`**: The React frontend for the application.
-  - `build: context: ./frontend Docker image for the `frontend` service.
+  - `build: context: ./frontend Docker image for the`frontend` service.
   - `ports: - "3000:3000"`: Maps port 3000 on the host to port 3000 in the container.
   - `environment`: Sets environment variables for the React application.
   - `depends_on: - gateway`: Specifies that the `frontend` service depends on the `gateway` service.

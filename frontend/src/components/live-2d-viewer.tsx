@@ -40,7 +40,7 @@ export const Live2DViewer: React.FC = () => {
       }
     };
 
-    initLive2D();
+    void initLive2D();
 
     return () => {
       if (managerRef.current) {
@@ -60,7 +60,9 @@ export const Live2DViewer: React.FC = () => {
     };
 
     window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
   }, []);
 
   // Handle talking animation
@@ -77,24 +79,25 @@ export const Live2DViewer: React.FC = () => {
   // Handle animation triggers from WebSocket
   useEffect(() => {
     const handleAnimation = (event: CustomEvent) => {
-      const { tag } = event.detail;
+      const { tag } = event.detail as { tag: string };
       if (managerRef.current && tag) {
         managerRef.current.playAnimation(tag);
       }
     };
 
     window.addEventListener("anim-trigger", handleAnimation as EventListener);
-    return () =>
+    return () => {
       window.removeEventListener(
         "anim-trigger",
         handleAnimation as EventListener
       );
+    };
   }, []);
 
   // Handle expression triggers
   useEffect(() => {
     const handleExpression = (event: CustomEvent) => {
-      const { tag } = event.detail;
+      const { tag } = event.detail as { tag: string };
       if (managerRef.current && tag) {
         managerRef.current.setExpression(tag);
       }
@@ -117,7 +120,9 @@ export const Live2DViewer: React.FC = () => {
           <h3 className="text-lg font-semibold mb-2">Failed to Load Avatar</h3>
           <p className="text-muted-foreground mb-4">{error}</p>
           <button
-            onClick={() => window.location.reload()}
+            onClick={() => {
+              window.location.reload();
+            }}
             className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
           >
             Retry

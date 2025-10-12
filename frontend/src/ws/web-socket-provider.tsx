@@ -4,26 +4,40 @@ import React, {
   useContext,
   useEffect,
   useRef,
-  useState,
+  useState
 } from "react";
 import { useChatStore } from "../stores/chat-store";
 import { useLive2DStore } from "../stores/live-2d-store";
 
-interface WebSocketContextType {
+type WebSocketMessage = {
+  type: string;
+  id?: string;
+  token?: string;
+  tag?: string;
+  seq?: number;
+  format?: string;
+  data?: string;
+  persona?: string;
+  total_chunks?: number;
+  message?: string;
+  error?: string;
+};
+
+type WebSocketContextType = {
   sendMessage: (message: string) => void;
   stopGeneration: () => void;
   isConnected: boolean;
   sessionId: string | null;
-}
+};
 
 const WebSocketContext = createContext<WebSocketContextType | null>(null);
 
-interface WebSocketProviderProps {
+type WebSocketProviderProps = {
   children: React.ReactNode;
-}
+};
 
 export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
-  children,
+  children
 }) => {
   const wsRef = useRef<WebSocket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
@@ -35,89 +49,100 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
   const { setAnimation } = useLive2DStore();
 
   const handleWebSocketMessage = useCallback(
-    (data: any) => {
+    (data: WebSocketMessage) => {
       const { type, id, token, tag, seq, format, data: payload } = data;
 
       switch (type) {
-        case "meta":
-          setSessionId(id);
+        case "meta": {
+          const sessionId = id || "";
+          setSessionId(sessionId);
           setSession({
-            id,
+            id: sessionId,
             persona: data.persona || "kira_v1",
             messages: [],
             isConnected: true,
-            isTyping: false,
+            isTyping: false
           });
           break;
+        }
 
-        case "llm_token":
+        case "llm_token": {
           if (token) {
             const existingMessage = useChatStore
               .getState()
               .session?.messages.find(
-                (m) => m.role === "assistant" && m.isStreaming
+                m => m.role === "assistant" && m.isStreaming
               );
 
             if (existingMessage) {
               updateMessage(existingMessage.id, {
-                content: existingMessage.content + token,
+                content: existingMessage.content + token
               });
             } else {
               addMessage({
                 role: "assistant",
                 content: token,
-                isStreaming: true,
+                isStreaming: true
               });
             }
           }
           break;
+        }
 
-        case "llm_end":
+        case "llm_end": {
           const streamingMessage = useChatStore
             .getState()
             .session?.messages.find(
-              (m) => m.role === "assistant" && m.isStreaming
+              m => m.role === "assistant" && m.isStreaming
             );
           if (streamingMessage) {
             updateMessage(streamingMessage.id, { isStreaming: false });
           }
           break;
+        }
 
-        case "tts_chunk":
+        case "tts_chunk": {
           window.dispatchEvent(
             new CustomEvent("tts-chunk", {
-              detail: { seq, format, data: payload },
+              detail: { seq, format, data: payload }
             })
           );
           break;
+        }
 
-        case "tts_end":
+        case "tts_end": {
           window.dispatchEvent(
             new CustomEvent("tts-end", {
-              detail: { totalChunks: data.total_chunks },
+              detail: { totalChunks: data.total_chunks }
             })
           );
           break;
+        }
 
-        case "anim":
+        case "anim": {
           if (tag) setAnimation(tag);
           break;
+        }
 
-        case "system":
-          console.log("ℹ️ System message:", data.message || payload);
+        case "system": {
+          const message = data.message || JSON.stringify(payload);
+          console.log("ℹ️ System message:", message);
           addMessage({
             role: "system",
-            content: data.message || JSON.stringify(payload),
+            content: message
           });
           break;
+        }
 
-        case "end":
+        case "end": {
           console.log("🔚 Session ended");
           break;
+        }
 
-        case "error":
+        case "error": {
           console.error("❌ Backend error:", data.error);
           break;
+        }
 
         default:
           console.warn("⚠️ Unknown WebSocket message type:", type, data);
@@ -138,9 +163,9 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
           setConnected(true);
         };
 
-        ws.onmessage = (event) => {
+        ws.onmessage = event => {
           try {
-            const data = JSON.parse(event.data);
+            const data = JSON.parse(event.data as string) as WebSocketMessage;
             handleWebSocketMessage(data);
           } catch (error) {
             console.error("❌ Error parsing WebSocket message:", error);
@@ -154,7 +179,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
           setTimeout(connectWebSocket, 3000); // auto-reconnect
         };
 
-        ws.onerror = (error) => {
+        ws.onerror = error => {
           console.error("❌ WebSocket error:", error);
           if (!isDemoMode) {
             setIsDemoMode(true);
@@ -189,7 +214,9 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
 
       addMessage({ role: "user", content: message.trim() });
       setTyping(true);
-      setTimeout(() => setTyping(false), 2000);
+      setTimeout(() => {
+        setTyping(false);
+      }, 2000);
     } else if (isDemoMode) {
       addMessage({ role: "user", content: message.trim() });
       setTyping(true);
@@ -197,11 +224,15 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
         setTyping(false);
         addMessage({
           role: "assistant",
-          content: `Hello! I'm Kira 🎌✨. You said: "${message.trim()}". (Demo mode active)`,
+          content: `Hello! I'm Kira 🎌✨. You said: "${message.trim()}". (Demo mode active)`
         });
         setAnimation("happy");
-        setTimeout(() => setAnimation("talking"), 1000);
-        setTimeout(() => setAnimation("smile"), 3000);
+        setTimeout(() => {
+          setAnimation("talking");
+        }, 1000);
+        setTimeout(() => {
+          setAnimation("smile");
+        }, 3000);
       }, 1500);
     }
   };
@@ -220,7 +251,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
     sendMessage,
     stopGeneration,
     isConnected,
-    sessionId,
+    sessionId
   };
 
   return (

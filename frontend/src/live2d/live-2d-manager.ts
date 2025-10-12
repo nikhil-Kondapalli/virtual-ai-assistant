@@ -12,8 +12,6 @@ export class Live2DManager {
   private lipSyncAnimationId: number | null = null;
   private expressionIntervalId: number | null = null;
 
-  constructor() {}
-
   async initialize(
     container: HTMLElement,
     analyserNode?: AnalyserNode
@@ -35,14 +33,18 @@ export class Live2DManager {
   }
 
   private setupCanvas(): void {
+    if (!this.container) return;
+
     this.canvas = document.createElement("canvas");
-    this.canvas.width = this.container!.clientWidth;
-    this.canvas.height = this.container!.clientHeight;
-    this.container!.appendChild(this.canvas);
+    this.canvas.width = this.container.clientWidth;
+    this.canvas.height = this.container.clientHeight;
+    this.container.appendChild(this.canvas);
   }
 
   private async loadModel(): Promise<void> {
-    this.model = new Live2DCubismModel(this.canvas!, {
+    if (!this.canvas) return;
+
+    this.model = new Live2DCubismModel(this.canvas, {
       autoAnimate: true,
       autoInteraction: true,
       tapInteraction: true,
@@ -55,7 +57,7 @@ export class Live2DManager {
       speed: 1,
       scale: 1,
       x: 0,
-      y: 0,
+      y: 0
     });
 
     await this.model.load(`${MODEL_PATH}${MODEL_JSON_FILE}`);
@@ -119,7 +121,7 @@ export class Live2DManager {
   public playAnimation(animationName: string): void {
     if (!this.model) return;
     console.log(`Playing animation: ${animationName}`);
-    this.model.startMotion(animationName, 0, 3);
+    void this.model.startMotion(animationName, 0, 3);
   }
 
   public setExpression(expressionName: string): void {
@@ -156,7 +158,7 @@ export class Live2DManager {
     this.isInitialized = false;
   }
 
-  public getModel(): any {
+  public getModel(): Live2DCubismModel | null {
     return this.model;
   }
 
