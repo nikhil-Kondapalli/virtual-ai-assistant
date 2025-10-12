@@ -1,15 +1,15 @@
 import { create } from "zustand";
 
-export interface Live2DModel {
+export type Live2DModel = {
   id: string;
   name: string;
   path: string;
   isLoaded: boolean;
   isPlaying: boolean;
   currentAnimation?: string;
-}
+};
 
-export interface Live2DState {
+export type Live2DState = {
   model: Live2DModel | null;
   isInitialized: boolean;
   error: string | null;
@@ -21,40 +21,50 @@ export interface Live2DState {
   setInitialized: (initialized: boolean) => void;
   setError: (error: string | null) => void;
   reset: () => void;
-}
+};
 
-export const useLive2DStore = create<Live2DState>((set, get) => ({
+export const useLive2DStore = create<Live2DState>(set => ({
   model: null,
   isInitialized: false,
   error: null,
 
-  setModel: (model) => set({ model }),
+  setModel: model => {
+    set({ model });
+  },
 
-  setLoaded: (loaded) =>
-    set((state) => ({
-      model: state.model ? { ...state.model, isLoaded: loaded } : null,
-    })),
+  setLoaded: loaded => {
+    set(state => ({
+      model: state.model ? { ...state.model, isLoaded: loaded } : null
+    }));
+  },
 
-  setPlaying: (playing) =>
-    set((state) => ({
-      model: state.model ? { ...state.model, isPlaying: playing } : null,
-    })),
+  setPlaying: playing => {
+    set(state => ({
+      model: state.model ? { ...state.model, isPlaying: playing } : null
+    }));
+  },
 
-  setAnimation: (animation) =>
-    set((state) => ({
+  setAnimation: animation => {
+    set(state => ({
       model: state.model
         ? { ...state.model, currentAnimation: animation }
-        : null,
-    })),
+        : null
+    }));
+  },
 
-  setInitialized: (initialized) => set({ isInitialized: initialized }),
+  setInitialized: initialized => {
+    set({ isInitialized: initialized });
+  },
 
-  setError: (error) => set({ error }),
+  setError: error => {
+    set({ error });
+  },
 
-  reset: () =>
+  reset: () => {
     set({
       model: null,
       isInitialized: false,
-      error: null,
-    }),
+      error: null
+    });
+  }
 }));

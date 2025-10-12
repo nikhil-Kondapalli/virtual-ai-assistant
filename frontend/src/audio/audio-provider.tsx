@@ -3,20 +3,20 @@ import React, {
   useContext,
   useEffect,
   useRef,
-  useState,
+  useState
 } from "react";
 
-interface AudioContextType {
+type AudioContextType = {
   isPlaying: boolean;
   clearQueue: () => void;
   audioContext: AudioContext | null;
   analyserNode: AnalyserNode | null;
-}
+};
 
 const AudioPlaybackContext = createContext<AudioContextType | null>(null);
 
 export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({
-  children,
+  children
 }) => {
   const [audioContext, setAudioContext] = useState<AudioContext | null>(null);
   const [analyserNode, setAnalyserNode] = useState<AnalyserNode | null>(null);
@@ -40,7 +40,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({
       if (!base64Data || format !== "opus") return;
 
       try {
-        const byteArray = Uint8Array.from(atob(base64Data), (c) =>
+        const byteArray = Uint8Array.from(atob(base64Data), c =>
           c.charCodeAt(0)
         );
         const audioBuffer = await audioContext.decodeAudioData(
@@ -59,7 +59,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({
         currentTimeRef.current = startTime + audioBuffer.duration;
         queueRef.current.push({
           buffer: audioBuffer,
-          duration: audioBuffer.duration,
+          duration: audioBuffer.duration
         });
 
         setIsPlaying(true);
@@ -76,8 +76,11 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({
     };
 
     const handleChunk = (event: Event) => {
-      const { data, format } = (event as CustomEvent).detail;
-      playChunk(data, format);
+      const { data, format } = (event as CustomEvent).detail as {
+        data: string;
+        format: string;
+      };
+      void playChunk(data, format);
     };
 
     const handleEnd = () => {
@@ -105,7 +108,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({
         isPlaying,
         clearQueue,
         audioContext,
-        analyserNode,
+        analyserNode
       }}
     >
       {children}

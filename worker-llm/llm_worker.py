@@ -114,11 +114,13 @@ async def control_worker_loop():
             continue
         try:
             data = json.loads(message["data"])
+            persona = data.get("persona", "kira_v1")
             if data.get("type") == "stop_session":
                 session_id = data.get("session_id")
                 if session_id:
                     stopped_sessions.add(session_id)
                     print(f"[LLM] 🛑 Queued stop for session {session_id}")
+            await redis.publish(f"session:{session_id}:out", json.dumps({"type": "llm_end", "persona": persona}))
         except (json.JSONDecodeError, AttributeError):
             continue
 

@@ -11,7 +11,7 @@ export default defineConfig(({ mode }) => {
     plugins: [react(), tailwindcss()],
     server: {
       host: "0.0.0.0",
-      port: 3000,
+      port: 3000
     },
     resolve: {
       alias: {
@@ -29,8 +29,8 @@ export default defineConfig(({ mode }) => {
         "@live2d": resolve(rootDirname, "./src/live2d"),
         "@audio": resolve(rootDirname, "./src/audio"),
         "@stores": resolve(rootDirname, "./src/stores"),
-        "@ws": resolve(rootDirname, "./src/ws"),
-      },
-    },
+        "@ws": resolve(rootDirname, "./src/ws")
+      }
+    }
   };
 });
