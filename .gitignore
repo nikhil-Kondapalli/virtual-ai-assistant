@@ -141,3 +141,39 @@ tts_cache/
 # Live2D models (if large)
 # Uncomment if you want to ignore model files
 # frontend/public/models/
+
+# RAG and Vector Database files (generated data, not source code)
+chroma_db/
+*.db
+*.sqlite3
+*.bin
+
+# Model files and downloads (large binary files)
+models/
+downloads/
+*.model
+*.safetensors
+
+# Temporary RAG files
+rag_cache/
+vector_cache/
+
+# Docker volumes and data
+data/
+volumes/
+
+# Jupyter notebooks checkpoints
+.ipynb_checkpoints/
+
+# pytest cache
+.pytest_cache/
+
+# mypy cache
+.mypy_cache/
+
+# RAG embeddings cache
+embeddings_cache/
+
+# Ollama models (if stored locally)
+.ollama/
+bash.exe.stackdump
