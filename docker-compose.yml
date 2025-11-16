@@ -1,11 +1,12 @@
 services:
   redis:
-    image: redis:7-alpine
+    image: redis/redis-stack:latest
     ports:
       - "6379:6379"
+      - "8001:8001" # Redis Stack GUI
     volumes:
       - redis_data:/data
-    command: redis-server --appendonly yes
+    command: redis-stack-server --appendonly yes
 
   gateway:
     build:
@@ -28,13 +29,18 @@ services:
       dockerfile: Dockerfile
     environment:
       - REDIS_URL=redis://redis:6379/0
-      - OLLAMA_URL=http://ollama:11434/api/generate
+      - OLLAMA_URL=http://ollama:11434/api/chat
+      - OLLAMA_HOST=http://ollama:11434
       - MODEL_NAME=tinyllama
+      - EMBEDDING_MODEL=nomic-embed-text
+      - RAG_CACHE_SIMILARITY_THRESHOLD=0.95
+      - RAG_TOP_K=3
     depends_on:
       - redis
       - ollama
     volumes:
       - ./worker-llm:/app
+    command: uvicorn llm_worker:app --host 0.0.0.0 --port 8001
 
   tts-worker:
     build:
@@ -47,6 +53,7 @@ services:
     volumes:
       - ./worker-tts:/app
       - tts_models:/root/.local/share/tts
+    command: uvicorn tts_worker:app --host 0.0.0.0 --port 8002
 
   ollama:
     build:

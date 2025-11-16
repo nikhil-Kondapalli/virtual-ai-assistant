@@ -8,7 +8,8 @@
 
 - **Live2D Avatar**: Interactive Virtual character with expressions and animations
 - **Real-time Chat**: WebSocket-based communication with typewriter effects
-- **AI Integration**: Open-source LLM support via Ollama (Mistral, Phi3, Qwen, TinyLlama)
+- **AI Integration**: Open-source LLM support via Ollama (Mistral, Phi3, Qwen, TinyLlama) with Retrieval-Augmented Generation (RAG) and Semantic Caching
+- **Real-time Control**: Stop ongoing LLM and TTS generation dynamically
 - **Text-to-Speech**: Coqui TTS with personalised-style voices
 - **Scalable Architecture**: Microservices with Redis pub/sub backbone
 - **Modern UI**: React + TypeScript + ShadCN components
@@ -20,7 +21,7 @@
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │   Frontend      │    │   Gateway       │    │   Workers       │
 │   (React)       │◄──►│   (Django)      │◄──►│   (FastAPI)     │
-│   - Live2D      │    │   - WebSockets  │    │   - LLM Worker  │
+│   - Live2D      │    │   - WebSockets  │    │   - LLM Worker (with ChromaDB)  │
 │   - Chat UI     │    │   - Auth        │    │   - TTS Worker  │
 │   - Audio       │    │   - Sessions    │    │                 │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
@@ -87,7 +88,21 @@ docker exec -it ai-assistant-ollama-1 ollama pull qwen2.5:7b
 docker exec -it ai-assistant-ollama-1 ollama pull tinyllama    # we are using this one
 ```
 
-### 4. Access the Application
+### 4. Initialize RAG (Retrieval-Augmented Generation)
+
+To enable RAG capabilities, you need to download embedding models and ingest your data into ChromaDB.
+
+```bash
+# 1. Download embedding models (e.g., sentence-transformers)
+docker exec -it ai-assistant-llm-worker-1 python /app/download_models.py
+
+# 2. Ingest your data (replace 'path/to/your/data' with your actual data directory)
+#    The data_ingestion.py script will process text files and add them to ChromaDB.
+#    You can specify chunk size and overlap for text splitting.
+docker exec -it ai-assistant-llm-worker-1 python /app/data_ingestion.py --directory /app/data --chunk_size 500 --chunk_overlap 50
+```
+
+### 5. Access the Application
 
 - **Frontend**: <http://localhost:3000>
 - **Backend API**: <http://localhost:8000>
@@ -111,11 +126,11 @@ The `docker-compose.yml` file defines the following services:
   - `depends_on: - redis`: Specifies that the `gateway` service depends on the `redis` service.
   - `volumes: - ./backend-gateway:/app`: Mounts the `backend-gateway` directory on the host to the `/app` directory in the container for local development.
   - `command: daphne -b 0.0.0.0 -p 8000 backend_gateway.asgi_websocket:application`: Starts the Daphne ASGI server to handle WebSocket connections.
-- **`llm-worker`**: A worker service that integrates with Ollama to provide AI-powered responses.
+- **`llm-worker`**: A worker service that integrates with Ollama to provide AI-powered responses, now enhanced with Retrieval-Augmented Generation (RAG) using ChromaDB for context retrieval and semantic caching.
   - `build: context: ./worker-llm`: Builds the Docker image for the `llm-worker` service.
-  - `environment`: Sets environment variables for the service, including the Redis and Ollama URLs.
+  - `environment`: Sets environment variables for the service, including the Redis and Ollama URLs, and RAG-specific configurations.
   - `depends_on: - redis - ollama`: Specifies that the `llm-worker` service depends on the `redis` and `ollama` services.
-  - `volumes: - ./worker-llm:/app`: Mounts the `worker-llm` directory for local development.
+  - `volumes: - ./worker-llm:/app - llm_chroma_data:/app/chroma_db`: Mounts the `worker-llm` directory for local development and a named volume `llm_chroma_data` to persist ChromaDB data.
 - **`tts-worker`**: A worker service that uses Coqui TTS to generate personalised-style voices.
   - `build: context: ./worker-tts`: Builds the Docker image for the `tts-worker` service.
   - `environment`: Sets the Redis URL.
@@ -138,6 +153,7 @@ The `docker-compose.yml` file defines the following services:
 - **`redis_data`**: Persists Redis data.
 - **`ollama_data`**: Persists Ollama models.
 - **`tts_models`**: Persists Coqui TTS models.
+- **`llm_chroma_data`**: Persists ChromaDB data for the LLM worker.
 
 ## 📁 Project Structure
 
@@ -151,6 +167,10 @@ monorepo/
 │   └── Dockerfile
 ├── worker-llm/               # FastAPI LLM worker
 │   ├── llm_worker.py         # Ollama integration
+│   ├── rag_service_chroma.py # RAG service with ChromaDB
+│   ├── data_ingestion.py     # Script for ingesting data into ChromaDB
+│   ├── download_models.py    # Script for downloading embedding models
+│   ├── chroma_db/            # Persistent ChromaDB storage
 │   └── Dockerfile
 ├── worker-tts/               # FastAPI TTS worker
 │   ├── tts_worker.py         # Coqui TTS integration
@@ -184,6 +204,10 @@ REDIS_URL=redis://redis:6379/0
 # LLM Worker
 OLLAMA_HOST=http://ollama:11434
 MODEL_NAME=mistral:7b
+EMBEDDING_MODEL=nomic-embed-text # Model for generating embeddings (e.g., nomic-embed-text, all-MiniLM-L6-v2)
+RAG_CACHE_SIMILARITY_THRESHOLD=0.85 # Similarity threshold for semantic cache hit (0.0 to 1.0)
+RAG_DOCUMENT_SIMILARITY_THRESHOLD=0.95 # Similarity threshold for including documents in RAG context (0.0 to 1.0)
+RAG_TOP_K=3 # Number of top relevant documents to retrieve for RAG
 
 # TTS Worker
 TTS_MODEL=tts_models/en/ljspeech/tacotron2-DDC

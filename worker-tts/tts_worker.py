@@ -25,6 +25,7 @@ tts = TTS(TTS_MODEL, gpu=False)
 
 # --- State Management ---
 session_states = {}  # In-memory store for session-specific data
+stopped_sessions = set()  # Track stopped sessions
 
 
 def get_session_state(session_id):
@@ -65,6 +66,11 @@ async def tts_worker_loop():
         state = get_session_state(session_id)
 
         if msg_type == "llm_token":
+            # Check if this session was stopped
+            if session_id in stopped_sessions:
+                print(f"🛑 TTS skipping token for stopped session {session_id}")
+                continue
+
             token = data.get("token", "")
             state["text_buffer"] += token
 
@@ -72,8 +78,12 @@ async def tts_worker_loop():
             WORD_COUNT_THRESHOLD = 12
 
             while True:
+                if session_id in stopped_sessions:
+                    print(f"🛑 TTS breaking out of sentence loop for stopped session {session_id}")
+                    break
+
                 text_buffer = state["text_buffer"]
-                
+
                 # Find the first delimiter
                 first_delimiter_pos = -1
                 for i, char in enumerate(text_buffer):
@@ -82,7 +92,7 @@ async def tts_worker_loop():
                         break
 
                 text_to_process = None
-                
+
                 if first_delimiter_pos != -1:
                     # Delimiter found, process the chunk up to it
                     text_to_process = text_buffer[:first_delimiter_pos + 1]
@@ -92,8 +102,8 @@ async def tts_worker_loop():
                     words = text_buffer.split()
                     if len(words) > WORD_COUNT_THRESHOLD:
                         text_to_process = text_buffer
-                        state["text_buffer"] = "" # Clear buffer
-                
+                        state["text_buffer"] = ""  # Clear buffer
+
                 if text_to_process:
                     print(
                         f"🗣️ Generating TTS for session {session_id}: '{text_to_process.strip()}'")
@@ -104,7 +114,8 @@ async def tts_worker_loop():
                     buf = io.BytesIO()
                     sf.write(buf, wav, samplerate=24000,
                              format='OGG', subtype='OPUS')
-                    b64_chunk = base64.b64encode(buf.getvalue()).decode("utf-8")
+                    b64_chunk = base64.b64encode(
+                        buf.getvalue()).decode("utf-8")
 
                     await redis.publish(
                         f"session:{session_id}:out",
@@ -121,27 +132,12 @@ async def tts_worker_loop():
                     break
 
         elif msg_type == "llm_end":
-            # Process any remaining text in the buffer
-            remaining_text = state["text_buffer"].strip()
-            if remaining_text:
+            # Check if this session was stopped before processing remaining text
+            if session_id in stopped_sessions:
                 print(
-                    f"🗣️ Generating TTS for remaining text: '{remaining_text}'")
-                wav = await asyncio.to_thread(tts.tts, text=remaining_text)
-                buf = io.BytesIO()
-                sf.write(buf, wav, samplerate=24000,
-                         format='OGG', subtype='OPUS')
-                b64_chunk = base64.b64encode(buf.getvalue()).decode("utf-8")
-                await redis.publish(
-                    f"session:{session_id}:out",
-                    json.dumps(
-                        {"type": "tts_chunk", "seq": state["tts_chunks_sent"], "format": "opus", "data": b64_chunk})
-                )
-                state["tts_chunks_sent"] += 1
-
-            # Send the final end marker and clean up
-            await redis.publish(f"session:{session_id}:out", json.dumps({"type": "tts_end", "total_chunks": state["tts_chunks_sent"]}))
-            print(f"✅ TTS finished for session {session_id}")
-            cleanup_session_state(session_id)
+                    f"🛑 TTS skipping remaining text for stopped session {session_id}")
+                cleanup_session_state(session_id)
+                continue
 
 
 async def control_worker_loop():
@@ -161,6 +157,7 @@ async def control_worker_loop():
                 if session_id:
                     print(
                         f"🛑 Clearing TTS state for stopped session {session_id}")
+                    stopped_sessions.add(session_id)
                     cleanup_session_state(session_id)
                     # Also send a tts_end to ensure the client audio queue stops
                     await redis.publish(f"session:{session_id}:out", json.dumps({"type": "tts_end", "total_chunks": 0}))
@@ -170,5 +167,14 @@ async def control_worker_loop():
 
 @app.on_event("startup")
 async def startup_event():
-    asyncio.create_task(tts_worker_loop())
-    asyncio.create_task(control_worker_loop())
+    app.state.tts_task = asyncio.create_task(tts_worker_loop())
+    app.state.control_task = asyncio.create_task(control_worker_loop())
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    print("🔌 Closing TTS worker connections...")
+    if hasattr(app.state, "tts_task"):
+        app.state.tts_task.cancel()
+    if hasattr(app.state, "control_task"):
+        app.state.control_task.cancel()
+    # await redis.close() # This will be handled by the main worker loop
